@@ -1,3 +1,8 @@
 language: node_js
 node_js:
 - '0.10'
+before_script:
+- php -S 127.0.0.1:8000 >/tmp/jquery-php.log 2>&1 &
+script:
+- npm test
+- phantomjs -e 'var page = require("webpage").create(); var poll; page.open("http://127.0.0.1:8000/test/index.html?dev", function(status) { if (status !== "success") { console.log("QUnit: unable to load test harness (" + status + ")"); phantom.exit(1); return; } poll = setInterval(function() { var result = page.evaluate(function() { var node = document.getElementById("qunit-testresult"), stats = window.QUnit && QUnit.config.stats; return node && stats ? { all: stats.all, bad: stats.bad } : null; }); if (result) { clearInterval(poll); console.log("QUnit: " + result.all + " assertions, " + result.bad + " failures"); phantom.exit(result.bad || !result.all ? 1 : 0); } }, 100); });'
